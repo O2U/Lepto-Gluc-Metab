@@ -1,8 +1,10 @@
-# Host-like Temperatures Unlock a Critical Glucose Metabolism Pathway Required for Persistent Infection in Pathogenic Leptospira
+# Host-like Temperatures Unlock Glucose Metabolism in Pathogenic Leptospira
 
 [![License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![License: CC BY 4.0](https://img.shields.io/badge/Data%20License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX) ---
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+
+---
 
 ### 概要 (Abstract)
 
