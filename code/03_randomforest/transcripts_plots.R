@@ -105,11 +105,11 @@ plt
 
 plot_g <- plot_gene_expression(tr, "lbj:LBJ_2173")
 plot_g
-ggsave("JB197_glucose_transcripts.pdf", plot_g, height = 2, width = 2)
+ggsave("results/figures/Fig2/JB197_glucose_transcripts.pdf", plot_g, height = 2, width = 2)
 
 plot_g6p1 <- plot_gene_expression(tr, "bcw:Q7M_741")
 plot_g6p2 <- plot_gene_expression(tr, "lbj:LBJ_0600")
 plot_g6p1 + plot_g6p2
 
-ggsave("JB197_g6p1_transcripts_250422.pdf", plot_g6p1, height = 2, width = 2)
-ggsave("JB197_g6p2_transcripts_250422.pdf", plot_g6p2, height = 2, width = 2)
+ggsave("results/figures/Fig2/JB197_g6p1_transcripts_250422.pdf", plot_g6p1, height = 2, width = 2)
+ggsave("results/figures/Fig2/JB197_g6p2_transcripts_250422.pdf", plot_g6p2, height = 2, width = 2)
