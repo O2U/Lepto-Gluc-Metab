@@ -25,19 +25,13 @@
 
 ### 環境構築 (Setup)
 
-本解析は、Condaを用いた環境管理を推奨します。以下の手順で、必要なソフトウェアとライブラリをインストールできます。
+本解析は、Condaを用いた環境管理を推奨します。以下のコマンドで、解析に必要な全てのソフトウェアとライブラリをインストールできます。
 
-1.  **Condaをインストールします。** ([Miniconda](https://docs.conda.io/en/latest/miniconda.html)を推奨)
-2.  **このリポジトリをクローンします。**
-    ```bash
-    git clone [https://github.com/your-username/Host-Leptospira-Metabolism.git](https://github.com/your-username/Host-Leptospira-Metabolism.git)
-    cd Host-Leptospira-Metabolism
-    ```
-3.  **Conda環境を構築・有効化します。**
     ```bash
     conda env create -f environment.yml
-    conda activate leptospira-env
     ```
+
+Rの実行環境（バージョン情報など）は```R_session_info.txt```を参照してください。
 
 ---
 
