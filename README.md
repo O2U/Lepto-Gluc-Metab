@@ -27,11 +27,11 @@
 
 本解析は、Condaを用いた環境管理を推奨します。以下のコマンドで、解析に必要な全てのソフトウェアとライブラリをインストールできます。
 
-    ```bash
-    conda env create -f environment.yml
-    ```
+~~~bash
+conda env create -f environment.yml
+~~~
 
-Rの実行環境（バージョン情報など）は```R_session_info.txt```を参照してください。
+Rの実行環境（バージョン情報など）は`R_session_info.txt`を参照してください。
 
 ---
 
