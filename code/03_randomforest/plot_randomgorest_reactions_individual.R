@@ -142,14 +142,132 @@ rxn_plot_only37 <- function(i, amin, amax, title) {
   return(g)
 }
 
+plot_reaction_boxplot_sign_abs <- function(data, reaction, ymin = 0, ymax = 1000) {
+  # チェック: 指定した反応がデータに存在するか確認
+  if (!reaction %in% colnames(data)) {
+    stop(paste("反応", reaction, "はデータ内に存在しません。"))
+  }
+  
+  # チェック: 'type' 列が存在するか
+  if (!"type" %in% colnames(data)) {
+    stop("データに 'type' 列が存在しません。正しいデータを渡してください。")
+  }
+  
+  # 絶対値を取ってデータフレームを作成
+  plot_data <- data.frame(
+    ReactionValue = abs(as.numeric(data[[reaction]])),
+    Condition = as.factor(data$type),
+    stringsAsFactors = FALSE
+  )
+  
+  # Conditionの順序を明示
+  plot_data$Condition <- factor(plot_data$Condition, levels = c("29°C", "37°C"))
+  
+  # Dunn検定
+  dunn_test <- plot_data %>%
+    dunn_test(ReactionValue ~ Condition, p.adjust.method = "bonferroni")
+  
+  # p値をアスタリスクに変換する関数
+  pval_to_stars <- function(p) {
+    if (p < 0.0001) return("****")
+    else if (p < 0.001) return("***")
+    else if (p < 0.01) return("**")
+    else if (p < 0.05) return("*")
+    else return("ns")
+  }
+  
+  comparison_list <- list(
+    c("29°C", "37°C")
+  )
+  
+  star_annotations <- sapply(dunn_test$p.adj, pval_to_stars)
+  
+  # 箱ひげ図
+  p <- ggplot(plot_data, aes(x = Condition, y = ReactionValue, fill = Condition)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_signif(
+      comparisons = comparison_list,
+      annotations = star_annotations,
+      tip_length = 0.01,
+      y_position = ymax * 0.9,
+      size = 0.8
+    ) +
+    labs(
+      title = reaction,
+      x = NULL,
+      y = "Absolute sampled flux"
+    ) +
+    theme_classic() +
+    scale_fill_manual(values = c("29°C" = "white", "37°C" = "red")) +
+    scale_y_continuous(limits = c(ymin, ymax)) +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(hjust = 0.5)
+    )
+  
+  return(p)
+}
 
-indv <- plot_reaction_boxplot_sign(plot_samples, df_plot$Feature[3], -150, 30) +
-  plot_reaction_boxplot_sign(plot_samples, df_plot$Feature[8], 0, 160) +
-  plot_reaction_boxplot_sign(plot_samples, df_plot$Feature[9], 0, 160) +
-  rxn_plot_only37(1, 0, 160, colnames(only37)[1]) +
-  rxn_plot_only37(2, 0, 160, colnames(only37)[2]) +
-  rxn_plot_only37(3, 0, 60, colnames(only37)[3]) +
-  rxn_plot_only37(4, 0, 160, colnames(only37)[4]) +
+rxn_plot_only37_abs <- function(i, amin = 0, amax, title) {
+  # 必要な列の名前を取得
+  rxn <- colnames(only37)[i]
+  df37 <- only37 %>% select(rxn)
+  
+  # 37°Cの値だけ絶対値にする
+  flux37 <- abs(as.numeric(df37[[rxn]]))
+  
+  # データフレーム作成
+  df <- data.frame(
+    group = c(rep("29°C", length(flux37)), rep("37°C", length(flux37))),
+    flux = c(rep(NA, length(flux37)), flux37)
+  )
+  
+  df$group <- factor(df$group, levels = c("29°C", "37°C"))
+  
+  # ggplot作成
+  g <- ggplot(df, aes(x = group, y = flux)) +
+    geom_boxplot(
+      data = df %>% filter(group == "37°C"),
+      aes(fill = group),
+      outlier.shape = NA
+    ) +
+    geom_text(
+      data = data.frame(group = factor("29°C", levels = c("29°C", "37°C"))),
+      aes(
+        x = group,
+        y = amin + (amax - amin) * 0.1,
+        label = "Inactivated"
+      ),
+      color = "black",
+      size = 2.5,
+      hjust = 0.5,
+      family = "Helvetica",
+      inherit.aes = FALSE
+    ) +
+    scale_fill_manual(values = c("37°C" = "red")) +
+    theme_classic() +
+    ggtitle(title) +
+    ylab("Absolute sampled flux") +
+    scale_y_continuous(limits = c(amin, amax)) +
+    scale_x_discrete(limits = c("29°C", "37°C")) +
+    theme(
+      axis.title.x = element_blank(),
+      plot.title = element_text(hjust = 0.5),
+      axis.text.x = element_text(size = 10)
+    ) +
+    guides(fill = "none")
+  
+  return(g)
+}
+
+
+indv <- plot_reaction_boxplot_sign_abs(plot_samples, df_plot$Feature[3], 0, 160) +
+  plot_reaction_boxplot_sign_abs(plot_samples, df_plot$Feature[8], 0, 160) +
+  plot_reaction_boxplot_sign_abs(plot_samples, df_plot$Feature[9], 0, 160) +
+  rxn_plot_only37_abs(1, 0, 160, colnames(only37)[1]) +
+  rxn_plot_only37_abs(2, 0, 160, colnames(only37)[2]) +
+  rxn_plot_only37_abs(3, 0, 60, colnames(only37)[3]) +
+  rxn_plot_only37_abs(4, 0, 160, colnames(only37)[4]) +
   plot_layout(ncol = 7)
 
 indv
@@ -159,10 +277,10 @@ indv
 
 
 # 個別の結果をPDFに保存
-ggsave(paste0("results/figures/Fig2/", df_plot$Feature[3], ".pdf"), plot_reaction_boxplot_sign(plot_samples, df_plot$Feature[3], -150, 30), width=2, height=2)
-ggsave(paste0("results/figures/Fig2/", df_plot$Feature[8], ".pdf"), plot_reaction_boxplot_sign(plot_samples, df_plot$Feature[8], 0, 160), width=2, height=2)
-ggsave(paste0("results/figures/Fig2/", df_plot$Feature[9], ".pdf"), plot_reaction_boxplot_sign(plot_samples, df_plot$Feature[9], 0, 160), width=2, height=2)
-ggsave(paste0("results/figures/Fig2/", colnames(only37)[1], ".pdf"), rxn_plot_only37(1, 0, 160, colnames(only37)[1]), width=2, height=2)
-ggsave(paste0("results/figures/Fig2/", colnames(only37)[2], ".pdf"), rxn_plot_only37(2, 0, 160, colnames(only37)[2]), width=2, height=2)
-ggsave(paste0("results/figures/Fig2/", colnames(only37)[3], ".pdf"), rxn_plot_only37(3, 0, 60, colnames(only37)[3]), width=2, height=2)
-ggsave(paste0("results/figures/Fig2/", colnames(only37)[4], ".pdf"), rxn_plot_only37(4, 0, 160, colnames(only37)[4]), width=2, height=2)
+ggsave(paste0("results/figures/Fig2/", df_plot$Feature[3], "_abs.pdf"), plot_reaction_boxplot_sign_abs(plot_samples, df_plot$Feature[3], 0, 160), width=2, height=2)
+ggsave(paste0("results/figures/Fig2/", df_plot$Feature[8], "_abs.pdf"), plot_reaction_boxplot_sign_abs(plot_samples, df_plot$Feature[8], 0, 160), width=2, height=2)
+ggsave(paste0("results/figures/Fig2/", df_plot$Feature[9], "_abs.pdf"), plot_reaction_boxplot_sign_abs(plot_samples, df_plot$Feature[9], 0, 160), width=2, height=2)
+ggsave(paste0("results/figures/Fig2/", colnames(only37)[1], "_abs.pdf"), rxn_plot_only37_abs(1, 0, 160, colnames(only37)[1]), width=2, height=2)
+ggsave(paste0("results/figures/Fig2/", colnames(only37)[2], "_abs.pdf"), rxn_plot_only37_abs(2, 0, 160, colnames(only37)[2]), width=2, height=2)
+ggsave(paste0("results/figures/Fig2/", colnames(only37)[3], "_abs.pdf"), rxn_plot_only37_abs(3, 0, 60, colnames(only37)[3]), width=2, height=2)
+ggsave(paste0("results/figures/Fig2/", colnames(only37)[4], "_abs.pdf"), rxn_plot_only37_abs(4, 0, 160, colnames(only37)[4]), width=2, height=2)

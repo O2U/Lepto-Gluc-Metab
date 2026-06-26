@@ -4,6 +4,7 @@
 # R
 .Rhistory
 .Rproj.user/
+sessioninfo.R
 
 # Python
 __pycache__/
