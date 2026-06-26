@@ -35,30 +35,6 @@ Rの実行環境（バージョン情報など）は`R_session_info.txt`を参�
 
 ---
 
-### 解析の再現手順 (Workflow)
-
-以下の順序で`code/`ディレクトリ内のスクリプトを実行することで、論文の主要な結果を再現できます。
-
-1.  **GENRE構築とRIPTiDe解析:**
-    ```bash
-    cd code/01_genre_construction/
-    python run_genre_construction.py
-    cd ../02_riptide_analysis/
-    python run_riptide.py
-    ```
-    * **生成物:** `results/models/leptospira_genre.xml`
-
-2.  **In Vitro実験データの解析と作図:**
-    ```R
-    # RStudioなどで以下のスクリプトを実行
-    source("code/03_in_vitro_analysis/analyze_growth_and_qpcr.R")
-    ```
-    * **生成物:** `results/figures/figure_2.png`
-
-3.  **(以降、プロテオミクス、In Vivo解析、最終的な作図スクリプトの実行方法を同様に記載)**
-
----
-
 ### 引用 (Citation)
 
 この研究、コード、またはデータがあなたの研究の役に立った場合は、以下の論文を引用してください。
