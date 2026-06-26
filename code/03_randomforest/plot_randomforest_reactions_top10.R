@@ -75,6 +75,76 @@ plot_reaction_boxplot <- function(data, reaction, ymin = -1000, ymax = 1000) {
   return(p)
 }
 
+# 絶対値の箱ひげ図
+plot_reaction_boxplot_abs <- function(data, reaction, ymin = 0, ymax = 1000) {
+  # チェック: 指定した反応がデータに存在するか確認
+  if (!reaction %in% colnames(data)) {
+    stop(paste("反応", reaction, "はデータ内に存在しません。"))
+  }
+  
+  # チェック: 'type' 列が存在するか
+  if (!"type" %in% colnames(data)) {
+    stop("データに 'type' 列が存在しません。正しいデータを渡してください。")
+  }
+  
+  # 絶対値を取ってデータフレームを作成
+  plot_data <- data.frame(
+    ReactionValue = abs(as.numeric(data[[reaction]])),
+    Condition = as.factor(data$type),
+    stringsAsFactors = FALSE
+  )
+  
+  # Conditionの順序を明示
+  plot_data$Condition <- factor(plot_data$Condition, levels = c("29°C", "37°C"))
+  
+  # Dunn検定（多重比較）を実行
+  # 現在この関数では検定結果を図に表示していませんが、
+  # 絶対値に対して検定する形で残しています。
+  dunn_test <- plot_data %>%
+    dunn_test(ReactionValue ~ Condition, p.adjust.method = "bonferroni")
+  
+  # p値をアスタリスクに変換する関数
+  pval_to_stars <- function(p) {
+    if (p < 0.0001) return("****")
+    else if (p < 0.001) return("***")
+    else if (p < 0.01) return("**")
+    else if (p < 0.05) return("*")
+    else return("ns")
+  }
+  
+  # 検定結果をggsignif用に整形
+  comparison_list <- list(
+    c("29°C", "37°C")
+  )
+  
+  star_annotations <- sapply(dunn_test$p.adj, pval_to_stars)
+  
+  # 箱ひげ図の作成
+  p <- ggplot(plot_data, aes(x = Condition, y = ReactionValue, fill = Condition)) +
+    geom_boxplot(outlier.shape = NA) +
+    # geom_jitter(width = 0.2, alpha = 0.5, size = 0.8) +
+    # geom_signif(
+    #   comparisons = comparison_list,
+    #   annotations = star_annotations,
+    #   tip_length = 0.01,
+    #   y_position = ymax * 0.9,
+    #   size = 0.8
+    # ) +
+    labs(
+      title = reaction,
+      x = NULL,
+      y = "Absolute sampled flux"
+    ) +
+    theme_classic() +
+    scale_fill_manual(values = c("29°C" = "white", "37°C" = "red")) +
+    scale_y_continuous(limits = c(ymin, ymax)) +
+    theme(
+      legend.position = "none",
+      plot.title = element_text(hjust = 0.5)
+    )
+  
+  return(p)
+}
 
 # read plot data
 jb197.29 <- read_delim("data/processed/RIPTiDe/jb197_29_20240227_130901/flux_samples.tsv") %>% select(-1)
@@ -108,7 +178,7 @@ for (reaction in df_plot$Feature) {
     ymax <- max(reaction_values, na.rm = TRUE) * 1.2
     
     # プロットを作成
-    p <- plot_reaction_boxplot(plot_samples, reaction, ymin, ymax)
+    p <- plot_reaction_boxplot_abs(plot_samples, reaction, 0, ymax)
     plots[[reaction]] <- p
   } else {
     message(paste("警告: 反応", reaction, "はデータ内に存在しません。"))
